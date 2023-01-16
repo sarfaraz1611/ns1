@@ -1,3 +1,146 @@
+Dvector:
+#include<stdio.h>
+struct node
+{
+unsigned dist[20];
+unsigned from[20];
+}rt[10];
+int main()
+{
+int dmat[20][20];
+int n,i,j,k,count=0;
+printf("\nEnter the number of nodes : ");
+scanf("%d",&n);
+printf("\nEnter the cost matrix :\n");
+for(i=0;i<n;i++)
+for(j=0;j<n;j++)
+{
+scanf("%d",&dmat[i][j]);
+dmat[i][i]=0;
+rt[i].dist[j]=dmat[i][j];
+rt[i].from[j]=j;
+}
+do
+{
+count=0;
+for(i=0;i<n;i++)
+for(j=0;j<n;j++)
+for(k=0;k<n;k++)
+if(rt[i].dist[j]>dmat[i][k]+rt[k].dist[j])
+{
+rt[i].dist[j]=rt[i].dist[k]+rt[k].dist[j];
+rt[i].from[j]=k;
+count++;
+}
+}while(count!=0);
+for(i=0;i<n;i++)
+{
+printf("\n\nState value for router %d is \n",i+1);
+for(j=0;j<n;j++)
+{
+printf("\t\nNode %d via %d 
+Distance%d",j+1,rt[i].from[j]+1,rt[i].dist[j]);
+}
+}
+}
+Fsort:
+#include<stdio.h>
+#include<stdlib.h>
+struct frame
+{
+ int fsno;
+ char finfo[20];
+};
+struct frame arr[10];
+int n;
+void sort()
+{
+ int i,j,ex;
+ struct frame temp;
+ for(i=0;i<n;i++)
+ {
+ ex=0;
+ for(j=0;j<n-i-1;j++)
+ if(arr[j].fsno>arr[j+1].fsno)
+ {
+ temp=arr[j];
+ arr[j]=arr[j+1];
+ arr[j+1]=temp;
+ ex++;
+ }
+ if(ex==0)
+ break;
+ }
+}
+void main()
+{
+ int i;
+ printf("\n Enter the number of frames \n");
+ scanf("%d",&n);
+ for(i=0;i<n;i++)
+ {
+ arr[i].fsno=rand()%20 +1;
+ printf("\n Enter the frame contents for sequence number %d\n",arr[i].fsno);
+ scanf("%s",arr[i].finfo);
+ }
+ sort();
+ printf("\n The frames in sequence \n");
+ for(i=0;i<n;i++)
+ printf("\n %d\t%s \n",arr[i].fsno,arr[i].finfo);
+}
+CRC:
+#include<stdio.h>
+int main()
+{
+ int i,f[10],div[10],n[10],temp,quo[10],z[10],j;
+ printf("Enter the number\n");
+ for(i=0;i<8;i++)
+ {#ifndef P1_C_INCLUDED
+#define P1_C_INCLUDED
+#endif // P1_C_INCLUDED
+ scanf("%d",&n[i]);
+ }
+ printf("Enter the divisor\n");
+ for(i=0;i<4;i++)
+ {
+ scanf("%d",&div[i]);
+ }
+ for(i=8;i<12;i++)
+ {
+ n[i]=0;
+ }
+ for(i=0;i<8;i++)
+ {
+ temp=i;
+ if(n[i]==1)
+ {
+ for(j=0;j<4;j++)
+ {
+ if(n[temp]==div[j])
+ {
+ n[temp]=0;
+ f[j]=0;
+ }
+ else
+ {
+ n[temp]=1;
+ f[j]=1;
+ }
+ temp=temp+1;
+ }
+ quo[i]=1;
+ }
+ else
+ quo[i]=0;
+ }
+ printf("The quotient is \n");
+ for(i=0;i<8;i++)
+ printf("%d",quo[i]);
+ printf("\m And the reminder is \n");
+ for(j=0;j<4;j++)
+ printf("%d",f[j]);
+}
+Program 1::
 set ns [new Simulator]
 set tracefile [open c1.tr w]
 $ns trace-all $tracefile
@@ -43,3 +186,228 @@ if(event=="d") { count++; }
 END{
 printf(" no of pkts dropped: %d\n",count);
 }
+Program 2::
+set ns [new Simulator]
+set tracefile [open pgm2.tr w]
+$ns trace-all $tracefile
+set namfile [open pgm2.nam w]
+$ns namtrace-all $namfile
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+set n5 [$ns node]
+$ns color 1 red
+$ns color 2 blue
+$ns duplex-link $n0 $n1 50000.0Mb 10ms DropTail
+$ns queue-limit $n0 $n1 4
+$ns duplex-link $n1 $n2 50.0Mb 10ms DropTail
+$ns queue-limit $n1 $n2 4
+$ns duplex-link $n2 $n3 1.0Mb 10ms DropTail
+$ns queue-limit $n2 $n3 5
+$ns duplex-link $n3 $n4 1.0Mb 10ms DropTail
+$ns duplex-link $n4 $n5 10.0Mb 10ms DropTail
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right
+$ns duplex-link-op $n2 $n3 orient right-down
+$ns duplex-link-op $n3 $n4 orient left
+$ns duplex-link-op $n4 $n5 orient left
+Agent/Ping instproc recv { from rtt } {
+$self instvar node_
+puts "node[ $node_ id]received ping answer from \
+#$from with round_trip_time $rtt ms"
+}
+set p0 [new Agent/Ping]
+$ns attach-agent $n0 $p0
+$p0 set PacketSize 50000
+$p0 set fid_ 1
+set p5 [new Agent/Ping]
+$ns attach-agent $n5 $p5
+$p5 set PacketSize 50000
+$p5 set fid_ 2
+$ns connect $p0 $p5
+$ns at 0.1 "$p0 send"
+$ns at 0.2 "$p0 send"
+$ns at 0.3 "$p0 send"
+$ns at 0.4 "$p0 send"
+$ns at 0.5 "$p0 send"
+$ns at 0.6 "$p0 send"
+$ns at 0.7 "$p0 send"
+$ns at 0.9 "$p0 send"
+$ns at 1.0 "$p0 send"
+$ns at 0.1 "$p5 send"
+$ns at 0.2 "$p5 send"
+$ns at 0.3 "$p5 send"
+$ns at 0.4 "$p5 send"
+$ns at 0.5 "$p5 send"
+$ns at 0.6 "$p5 send"
+$ns at 0.7 "$p5 send"
+$ns at 0.9 "$p5 send"
+$ns at 1.0 "$p5 send"
+proc Finish {} {
+global ns tracefile namfile
+$ns flush-trace
+close $tracefile
+close $namfile
+exec nam pgm2.nam &
+exec awk -f pgm2.awk pgm2.tr &
+exit 0
+}
+$ns at 10.0 "Finish"
+$ns run
+program3:
+set ns [new Simulator]
+set nf [open out.nam w]
+$ns namtrace-all $nf
+proc finish { } {
+global ns nf
+$ns flush-trace
+close $nf
+exec nam out.nam &
+exit 0
+}
+set n0 [$ns node]
+set n1 [$ns node]
+$ns duplex-link $n0 $n1 1Mb 10ms DropTail
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 set PacketSize_ 500
+$cbr0 set interval_ 0.005
+$cbr0 attach-agent $udp0
+set null0 [new Agent/Null]
+$ns attach-agent $n1 $null0
+$ns connect $udp0 $null0
+$ns at 0.5 "$cbr0 start"
+$ns at 4.5 "$cbr0 stop"
+$ns at 5.0 "finish"
+$ns run
+program 4:
+set ns [new Simulator]
+$ns color 1 Blue
+$ns color 2 Red
+set nf [open out.nam w]
+$ns namtrace-all $nf
+proc finish {} {
+global ns nf
+$ns flush-trace
+close $nf
+exec nam out.nam &
+exit 0
+}
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+$ns duplex-link $n0 $n2 2Mb 10ms DropTail
+$ns duplex-link $n1 $n2 2Mb 10ms DropTail
+$ns duplex-link $n2 $n3 1.7Mb 20ms DropTail
+$ns queue-limit $n2 $n3 10
+$ns duplex-link-op $n0 $n2 orient right-down
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns duplex-link-op $n2 $n3 orient right
+$ns duplex-link-op $n2 $n3 queuePos 0.5
+set tcp [new Agent/TCP]
+$tcp set class_ 2
+$ns attach-agent $n0 $tcp
+set sink [new Agent/TCPSink]
+$ns attach-agent $n3 $sink
+$ns connect $tcp $sink
+$tcp set fid_ 1
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp
+$ftp set type_ FTP
+set udp [new Agent/UDP]
+$ns attach-agent $n1 $udp
+set null [new Agent/Null]
+$ns attach-agent $n3 $null
+$ns connect $udp $null
+$udp set fid_ 2
+set cbr [new Application/Traffic/CBR]
+$cbr attach-agent $udp
+$cbr set type_ CBR
+$cbr set packet_size_ 1000
+$cbr set rate_ 1mb
+$cbr set random_ false
+$ns at 1.0 "$ftp start"
+$ns at 4.0 "$ftp stop"
+$ns at 4.5 "$cbr stop"
+$ns at 4.5 "$ns detach-agent $n0 $tcp ; $ns detach-agent $n3 $sink"
+$ns at 5.0 "finish"
+puts "CBR packet size = [$cbr set packet_size_]"
+puts "CBR interval = [$cbr set interval_]"
+$ns run
+program 5:
+set ns [new Simulator]
+$ns color 1 Green
+$ns color 2 Blue
+set nf [open out.nam w]
+$ns namtrace-all $nf
+proc finish {} {
+global ns nf
+$ns flush-trace
+close $nf
+exec nam out.nam &
+exit 0}
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+set n5 [$ns node]
+set n6 [$ns node]
+set n7 [$ns node]
+$ns duplex-link $n0 $n2 0.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 2Mb 10ms DropTail
+$ns duplex-link $n2 $n3 1.7Mb 20ms DropTail
+$ns duplex-link $n3 $n4 2Mb 10ms DropTail
+$ns duplex-link $n4 $n5 1Mb 10ms DropTail
+$ns duplex-link $n4 $n6 1.7Mb 20ms DropTail
+$ns duplex-link $n5 $n7 2.2Mb 10ms DropTail
+$ns duplex-link $n6 $n7 2.7Mb 5ms DropTail
+$ns queue-limit $n2 $n3 10
+$ns queue-limit $n4 $n5 10
+$ns queue-limit $n6 $n7 20
+$ns duplex-link-op $n0 $n2 orient right-down
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns duplex-link-op $n2 $n3 orient right-down
+$ns duplex-link-op $n3 $n4 orient right-up
+$ns duplex-link-op $n4 $n5 orient right-up
+$ns duplex-link-op $n4 $n6 orient right-down
+$ns duplex-link-op $n5 $n7 orient right-down
+$ns duplex-link-op $n6 $n7 orient right-up
+$ns duplex-link-op $n2 $n3 queuePos 0.5
+$ns duplex-link-op $n4 $n5 queuePos 0.4
+$ns duplex-link-op $n6 $n7 queuePos 0.2
+set tcp [new Agent/TCP]
+$tcp set class_ 2
+$ns attach-agent $n0 $tcp
+set sink [new Agent/TCPSink]
+$ns attach-agent $n5 $sink
+$ns connect $tcp $sink
+$tcp set fid_ 1
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp
+$ftp set type_ FTP
+set udp [new Agent/UDP]
+$ns attach-agent $n1 $udp
+set null [new Agent/Null]
+$ns attach-agent $n6 $null
+$ns connect $udp $null
+$udp set fid_ 2
+set cbr [new Application/Traffic/CBR]
+$cbr attach-agent $udp
+$cbr set type_ CBR
+$cbr set packet_size_ 1000
+$cbr set rate_ 1mb
+$cbr set random_ false
+$ns at 0.1 "$cbr start"
+$ns at 0.5 "$ftp start"
+$ns at 4.0 "$ftp stop"
+$ns at 4.5 "$cbr stop"
+$ns at 4.5 "$ns detach-agent $n0 $tcp ; $ns detach-agent $n5 $sink"
+$ns at 5.0 "finish"
+puts "CBR packet size = [$cbr set packet_size_]"
+puts "CBR interval = [$cbr set interval_]"
+$ns run
